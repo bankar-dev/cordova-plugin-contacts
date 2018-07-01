@@ -382,28 +382,29 @@
                 }
             }
             NSMutableArray* returnContacts = [NSMutableArray arrayWithCapacity:1];
+            [self.commandDelegate runInBackground:^{
+                if ((matches != nil) && ([matches count] > 0)) {
+                    // convert to JS Contacts format and return in callback
+                    // - returnFields  determines what properties to return
+                    @autoreleasepool {
+                        int count = multiple == YES ? (int)[matches count] : 1;
 
-            if ((matches != nil) && ([matches count] > 0)) {
-                // convert to JS Contacts format and return in callback
-                // - returnFields  determines what properties to return
-                @autoreleasepool {
-                    int count = multiple == YES ? (int)[matches count] : 1;
-
-                    for (int i = 0; i < count; i++) {
-                        CDVContact* newContact = [matches objectAtIndex:i];
-                        NSDictionary* aContact = [newContact toDictionary:returnFields];
-                        [returnContacts addObject:aContact];
+                        for (int i = 0; i < count; i++) {
+                            CDVContact* newContact = [matches objectAtIndex:i];
+                            NSDictionary* aContact = [newContact toDictionary:returnFields];
+                            [returnContacts addObject:aContact];
+                        }
                     }
                 }
-            }
-            // return found contacts (array is empty if no contacts found)
-            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:returnContacts];
-            [weakSelf.commandDelegate sendPluginResult:result callbackId:callbackId];
-            // NSLog(@"findCallback string: %@", jsString);
+                // return found contacts (array is empty if no contacts found)
+                CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:returnContacts];
+                [weakSelf.commandDelegate sendPluginResult:result callbackId:callbackId];
+                // NSLog(@"findCallback string: %@", jsString);
 
-            if (addrBook) {
-                CFRelease(addrBook);
-            }
+                if (addrBook) {
+                    CFRelease(addrBook);
+                }
+            }];
         }];
     }];     // end of workQueue block
 
